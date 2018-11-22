@@ -3,9 +3,10 @@ namespace appapi\controllers;
 
 
 use common\models\Area;
+use common\models\Member\MemberFav;
 use common\models\product\BuildHouse;
+use common\services\BuildHouseService;
 use Yii;
-use yii\data\ActiveDataProvider;
 
 /**
  * Base controller
@@ -17,34 +18,9 @@ class BuildController extends BaseController
 
         $params = Yii::$app->request->post();
         $query = BuildHouse::find()->asArray();
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => $_GET['pageSize'],
-                'validatePage' => false
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    'top'=> SORT_ASC,
-                    'id' => SORT_DESC,
-                ]
-            ],
-        ]);
+        $dataProvider = $this->dataProvider($query,  ['top'=> SORT_ASC, 'id' => SORT_DESC]);
 
-        $query->select(["id", "title", "image", "area_id", "address", "developer", "type", "price", "flag", "rate"]);
-        $query->andFilterWhere(['resource' => BuildHouse::RESOURCE_NEW]);
-        $query->andFilterWhere(['status' => BuildHouse::STATUS_DISPLAY]);
-        $query->andFilterWhere(['area_id' => @$params['area']]);
-        $query->andFilterWhere(['type' => @$params['type']]);
-        $query->andFilterWhere(['like', 'title', @$params['keyword']]);
-
-        $list = $dataProvider->getModels();
-        foreach ($list as &$item){
-            $item['type'] = BuildHouse::$TYPE_MAP[$item['type']];
-            $item['area'] = Area::getCacheArea(3, $item['area_id']);
-        }
-
-        return $list;
+        return BuildHouseService::handData($dataProvider, $query, $params);
     }
 
     // 获取用户信息
@@ -56,6 +32,7 @@ class BuildController extends BaseController
             return [];
         }
 
+        $uid = $this->getUserId();
         $return = [];
         $return['id'] = (int)$buildinfo->id ;
         $return['title'] = $buildinfo->title ;
@@ -67,6 +44,7 @@ class BuildController extends BaseController
         $return['type'] = BuildHouse::$TYPE_MAP[$buildinfo->type];
         $return['flag'] = $buildinfo->flag ?? '' ;
         $return['rate'] = $buildinfo->rate ;
+        $return['isFav'] = MemberFav::isExists($uid, 1, $buildinfo->id);
         $return['content'] = $buildinfo->content->content ;
 
         return $return;

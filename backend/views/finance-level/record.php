@@ -29,7 +29,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= $form->field($searchModel, 'title')->textInput(['placeholder' => '名称']) ?>
         <?= $form->field($searchModel, 'user_id')->textInput(['placeholder' => '用户ID']) ?>
         <?= $form->field($searchModel, 'price')->textInput(['placeholder' => '开单金额']) ?>
-        <?= $form->field($searchModel, 'level_id')->textInput(['placeholder' => '开单级别']) ?>
+        <?= $form->field($searchModel, 'status')->dropDownList(FinanceRecord::$STATUS_MAP, ['prompt' => '状态']) ?>
         <?= $form->field($searchModel, 'date')->textInput(['placeholder' => '开单时间']) ?>
 
         <div class="form-group">
@@ -55,10 +55,25 @@ $this->params['breadcrumbs'][] = $this->title;
             'user',
             'parent',
             'grandpa',
+            'admin',
             'team',
             'league',
             'date',
+            ['attribute' => 'status', 'value' => function($model){ return FinanceRecord::$STATUS_MAP[$model->status]; } ],
             'created_at',
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'header' => '操作',
+                'headerOptions' => ['width'=>'50px'],
+                'template' => '{update}',
+                'buttons' => [
+                    'update' => function($url, $model){
+                        if($model->status == FinanceRecord::STATUS_OFF){
+                            return Html::a('修改', $url,['class' =>'btn btn-outline btn-info btn-xs']);
+                        }
+                    },
+                ],
+            ],
         ],
     ]); ?>
 </div>

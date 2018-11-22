@@ -1,28 +1,23 @@
 <?php
 namespace appapi\controllers;
 
+use common\models\finance\FinanceRecord;
+use common\models\finance\FinanceReward;
 use common\models\product\BuildNews;
 use Yii;
-use yii\data\ActiveDataProvider;
+
 
 class OrderController extends BaseController
 {
     // 我的订单
-    public function actionIndex(){
+    public function actionList(){
         $uid = $this->getUserId();
-        $query = BuildNews::find()->asArray();
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => $_GET['pageSize'],
-                'validatePage' => false
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    'id' => SORT_DESC,
-                ]
-            ],
-        ]);
+
+        $query = FinanceRecord::find()->where(['user_id' => $uid])
+            ->select(["id", "date", "price", "title"])
+            ->asArray();
+        $dataProvider = $this->dataProvider($query);
+
         $list = $dataProvider->getModels();
         return $list;
     }
@@ -30,20 +25,26 @@ class OrderController extends BaseController
     // 我的工资
     public function actionReward(){
         $uid = $this->getUserId();
-        $query = BuildNews::find()->asArray();
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => $_GET['pageSize'],
-                'validatePage' => false
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    'id' => SORT_DESC,
-                ]
-            ],
-        ]);
-        $list = $dataProvider->getModels();
-        return $list;
+
+        $page = empty($_GET['page']) ? 3 : $_GET['page']*3;
+        $date = date('Y-m-01', strtotime("-{$page} months"));
+
+        $list = FinanceReward::find()->where(['user_id' => $uid])->andWhere(['>', 'date', $date])->asArray()->all();
+        $listdata = [];
+        foreach ($list as $row){
+            $datekey = substr($row['date'], 0, 7);
+            if( isset($listdata[$datekey]) ){
+                $listdata[$datekey]['date'] = $datekey;
+                $listdata[$datekey]['price'] += $row['amount'];
+                $listdata[$datekey]['list'][] = $row;
+            }else{
+                $listdata[$datekey] = [];
+                $listdata[$datekey]['date'] = $datekey;
+                $listdata[$datekey]['price'] = $row['amount'];
+                $listdata[$datekey]['list'][] = $row;
+            }
+        }
+        sort($listdata);
+        return $listdata;
     }
 }

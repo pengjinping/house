@@ -38,6 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <tr><td>开单者</td><td><?= Html::encode($model->user); ?>%</td></tr>
             <tr><td>上级</td><td><?= Html::encode($model->parent); ?>%</td></tr>
             <tr><td>二级</td><td><?= Html::encode($model->grandpa); ?>%</td></tr>
+            <tr><td>后台管理</td><td><?= Html::encode($model->admin); ?>%</td></tr>
             <tr><td>团建</td><td><?= Html::encode($model->league); ?>%</td></tr>
             <tr><td>团队管理</td><td><?= Html::encode($model->team); ?>%</td></tr>
             <tr><td>状态</td><td><?= Html::encode(FinanceLevel::$STATUS_MAP[$model->status]);?></td></tr>

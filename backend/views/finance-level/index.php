@@ -15,7 +15,6 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="ibox ibox-content">
         <?php  echo $this->render('_search', ['model' => $searchModel]); ?>
 
-
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
         'tableOptions' => ['class' => 'table table-striped'],
@@ -29,9 +28,9 @@ $this->params['breadcrumbs'][] = $this->title;
             'user',
             'parent',
             'grandpa',
+            'admin',
             'league',
             'team',
-            'status',
             [ 'attribute' => 'status', 'value' => function($model){ return FinanceLevel::$STATUS_MAP[$model->status]; } ],
             [
                 'class' => 'yii\grid\ActionColumn',

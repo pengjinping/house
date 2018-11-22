@@ -133,6 +133,7 @@ class AuthController extends BaseController
         $this->vmakdecode($params['phone'], $params['vcode']);
 
         // 2 验证用户
+        $this->setUserinfo();
         $uid = $this->getUserId();
         $userinfo = Member::find()->where(['mobile' => $params['phone'] ])->one();
         if ( $userinfo && $userinfo->id != $uid ) {
@@ -143,6 +144,7 @@ class AuthController extends BaseController
         $userinfo = Member::findOne($uid);
         $userinfo->mobile = $params['phone'];
         if( $userinfo->save() ){
+            Member::handData($userinfo, false);
             return "ok";
         }else{
             throw new HttpException('500', $userinfo->errors[0]);
@@ -163,18 +165,22 @@ class AuthController extends BaseController
     }
 
     // 生成或者校验验证码
-    private function vmakdecode($mobile, $code=''){
-        RedisHelper::select(3);
-        $codekey = "sendSms:{$mobile}";
-        if( $code ){
+    private function vmakdecode($mobile, $code = null){
+         RedisHelper::select(3);
+         $codekey = "sendSms:{$mobile}";
+        if( $code != null ){
             if( $code != '181205' && $code != RedisHelper::getCache($codekey) ){
                 throw new HttpException('500', '验证码错误');
             }
+            return false;
         }
 
         $vcode = rand(100000, 999999);
         RedisHelper::setCache($codekey, $vcode, 600);
-        return PushHelper::sendSMS($mobile, 1, [$vcode, 10]);
+        $res = PushHelper::sendSMS($mobile, PushHelper::TEMP_CODE_VCODE, [$vcode, 10]);
+        if($res['code'] != 200){
+            throw new HttpException('500', '发送验证码失败'. $res['msg']);
+        }
     }
 
 }

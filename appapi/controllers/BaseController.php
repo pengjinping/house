@@ -9,6 +9,7 @@ use common\helpers\ValidateHelper;
 use yii\rest\Controller;
 use yii\web\BadRequestHttpException;
 use yii\web\UnauthorizedHttpException;
+use yii\data\ActiveDataProvider;
 
 /**
  * Base controller
@@ -23,27 +24,32 @@ class BaseController extends Controller
         $behaviors['access'] = ['class' => AuthFilter::className() ];
 
         if( $this->checkAuth ){
-            $request = Yii::$app->request;
-            $authHeader =$request->headers->get('X-TOKEN');
-            if( !$authHeader ){
-                $authHeader = $request->getCookies()->get('auth-token');
-            }
-            if( !$authHeader ){
-                $authHeader = $request->post('auth_token');
-            }
-            if( !$authHeader ){
-                throw new BadRequestHttpException('缺少必要参数auth_token', 500);
-            }
-
-            RedisHelper::select(2);
-            $userinfo = RedisHelper::getCache($authHeader);
-            if( empty($userinfo) ){
-                throw new UnauthorizedHttpException('还未登录，请先登录');
-            }
-            $this->userinfo = json_decode($userinfo, true);
+            $this->setUserinfo();
         }
 
         return $behaviors;
+    }
+
+    // 判断用户是否登录
+    protected function setUserinfo(){
+        $request = Yii::$app->request;
+        $authHeader =$request->headers->get('X-TOKEN');
+        if( !$authHeader ){
+            $authHeader = $request->getCookies()->get('auth-token');
+        }
+        if( !$authHeader ){
+            $authHeader = $request->post('auth_token');
+        }
+        if( !$authHeader ){
+            throw new BadRequestHttpException('缺少必要参数auth_token', 500);
+        }
+
+        RedisHelper::select(2);
+        $userinfo = RedisHelper::getCache($authHeader);
+        if( empty($userinfo) ){
+            throw new UnauthorizedHttpException('还未登录，请先登录');
+        }
+        $this->userinfo = json_decode($userinfo, true);
     }
 
     // 获取用户传送token信息
@@ -81,9 +87,18 @@ class BaseController extends Controller
         RedisHelper::decr($rediskey);
     }
 
-    public function actionTest()
-    {
-        return 'SUCCESS';
+    // 数据分页功能
+    protected function dataProvider($query, $sort=[]){
+        $sort = empty($sort) ? ['id' => SORT_DESC] : $sort;
+        return new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => $_GET['pageSize'],
+                'validatePage' => false
+            ],
+            'sort' => [
+                'defaultOrder' => $sort
+            ],
+        ]);
     }
-
 }

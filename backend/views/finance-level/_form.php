@@ -33,20 +33,12 @@ use common\models\finance\FinanceLevel;
 
     <?= $form->field($model, 'grandpa')->textInput(['maxlength' => true]) ?>
 
+    <?= $form->field($model, 'admin')->textInput(['maxlength' => true]) ?>
+
     <?= $form->field($model, 'league')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'team')->textInput(['maxlength' => true]) ?>
 
-   <!--
-    $form->field($model, 'content')->widget(\zh\qiniu\QiniuFileInput::className(),[ 'qlConfig' => \Yii::$app->params['ql'],
-        'uploadUrl' => 'https://upload.qiniup.com',
-        'clientOptions' => [ 'max'=>1 ] ])->label('图片')
-    $form->field($model, 'content')->widget('kucha\ueditor\UEditor')->label('内容')
-    use kartik\datetime\DateTimePicker;
-    use kartik\date\DatePicker;
-    $form->field($model, 'created_at')->widget(DateTimePicker::classname(), [  DateTimePicker||DatePicker
-        ['options' => ['placeholder' => ''], 'pluginOptions' => ['format' => 'yyyy-mm-dd hh:ii:ss', 'todayHighlight' => true, 'autoclose' => true] ]);
-    -->
     <div class="form-group">
     	<div class="col-sm-4 col-sm-offset-2">
         	<?= Html::submitButton($model->isNewRecord ? '创建' : '更新', ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>

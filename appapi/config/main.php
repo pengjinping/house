@@ -23,11 +23,11 @@ return [
                     echo htmlspecialchars_decode($response->data); exit;
                 }
                 if ($response->data !== null) {
-                    $response->data = [
-                        'msg' => empty($response->data['message']) ? $response->data : $response->data['message'],
-                        'code'    => $response->statusCode,
-                        'data'    => $response->statusCode == 200 ? $response->data : (YII_DEBUG ? $response->data : null),
-                    ];
+                    $data['msg'] =  empty($response->data['message']) ? 'success' : $response->data['message'];
+                    $data['msg'] = $response->statusCode != 200  && is_string($response->data) ? $response->data : $data['msg'];
+                    $data['code'] = $response->statusCode;
+                    $data['data'] = $response->statusCode == 200 ? $response->data : (YII_DEBUG ? $response->data : null);
+                    $response->data = $data;
                 }
                 $response->statusCode = 200;
             }

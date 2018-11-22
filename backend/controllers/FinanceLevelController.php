@@ -117,6 +117,6 @@ class FinanceLevelController extends Controller
             return $model;
         }
 
-        throw new NotFoundHttpException(数据不存在);
+        throw new NotFoundHttpException('数据不存在');
     }
 }

@@ -1,9 +1,11 @@
 <?php
 namespace appapi\controllers;
 
-use common\models\product\BuildNews;
+use common\models\Member\MemberFav;
+use common\models\product\BuildHouse;
+use common\services\BuildHouseService;
 use Yii;
-use yii\data\ActiveDataProvider;
+
 
 /**
  * 最新资讯 controller
@@ -12,9 +14,18 @@ class CommonController extends BaseController
 {
     // ---------------------------  fav 收藏
     public function actionFav(){
+        $params = Yii::$app->request->post();
+        $this->validata($params, array(
+            't' => 'in:1,2,3',
+        ));
+
         $uid = $this->getUserId();
-        $data = ['uid' => $uid];
-        return $data;
+        $valueids = MemberFav::find()->where(['user_id' => $uid])->andWhere(['type' => $params['t']])->select('value')->column();
+        $query = BuildHouse::find()->asArray();
+        $query->andWhere(['id' => $valueids]);
+        $dataProvider = $this->dataProvider($query,  ['top'=> SORT_ASC, 'id' => SORT_DESC]);
+
+        return BuildHouseService::handData($dataProvider, $query, $params);
     }
     public function actionFavSave(){
         $params = Yii::$app->request->post();
@@ -25,10 +36,25 @@ class CommonController extends BaseController
         ));
 
         $this->lock();
-        $data['id'] = $params['id'];
-        $data['status'] = !$params['status'];
-
+        $uid = $this->getUserId();
+        if($params['status'] == 1){
+            $fav = new MemberFav();
+            $fav->user_id = $uid;
+            $fav->type = $params['type'];
+            $fav->value = $params['id'];
+            $fav->created_at = date('Y-m-d H:i:s');
+            $fav->save();
+        }else{
+            $where['user_id'] = $uid;
+            $where['value'] = $params['id'];
+            $where['type'] = $params['type'];
+            $fav = MemberFav::find()->where($where)->one();
+            $fav->delete();
+        }
         $this->unlock();
+
+        $data['id'] = $fav->id;
+        $data['status'] = !$params['status'];
         return $data;
     }
 

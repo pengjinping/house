@@ -23,14 +23,16 @@ class Member extends ActiveRecord implements IdentityInterface
         self::STATUS_WRITE  => '审核',
     );
 
-    const SEX_FEMALE  = 0;
+    const SEX_FEMALE  = 2;
     const SEX_MALE    = 1;
-    const SEX_SECRECY = 2;
+    const SEX_SECRECY = 0;
     public static $SEX_MAP = array(
         self::SEX_MALE    => '男',
         self::SEX_FEMALE  => '女',
         self::SEX_SECRECY => '保密',
     );
+
+    public $parent_id;      // 父级ID
 
     public static function getDb()
     {
@@ -73,6 +75,7 @@ class Member extends ActiveRecord implements IdentityInterface
     {
         return [
             'id' => '用户ID',
+            'parent_id' => '上级ID',
             'username' => '用户名',
             'password' => '登陆密码',
             'pay_password' => '支付密码',
@@ -108,6 +111,23 @@ class Member extends ActiveRecord implements IdentityInterface
     // 获取用户账号信息
     public function getGradename(){
         return $this->hasOne(Grade::className(), ['id' => 'grade_id']);
+    }
+
+    // 获取分销信息
+    public function getLeveldis(){
+        return $this->hasOne(MemberLevel::className(), ['user_id' => 'id']);
+    }
+
+    // 查询用户的所有上级名称
+    public function getParentsName(){
+        $uids = array();
+        if(  $parent = $this->leveldis ){
+            $uids = explode(',', $parent->teamids);
+            $uids[] = $parent->grandpa;
+            $uids[] = $parent->parent;
+        }
+        array_unique($uids);
+        return static::find()->select("username")->where(['id' => $uids])->orderBy('id asc')->asArray()->column();
     }
 
     /**
@@ -192,15 +212,17 @@ class Member extends ActiveRecord implements IdentityInterface
     }
 
     // 过滤用户信息
-    public static function handData($member){
+    public static function handData($member, $changeToke = true){
 
         // 储存用户信息到redis
         RedisHelper::select(2);
-        $member->token && RedisHelper::delCache( $member->token );
 
-        // 更新token
-        $member->generateAuthKey();
-        $member->save();
+        if( $changeToke ){  // 更新token
+            $member->token && RedisHelper::delCache( $member->token );
+            $member->generateAuthKey();
+            $member->save();
+        }
+
         RedisHelper::setCache($member->token, json_encode( $member->toArray(), JSON_UNESCAPED_UNICODE), 30*86400);
 
         $return  = [];
@@ -211,6 +233,7 @@ class Member extends ActiveRecord implements IdentityInterface
         $return['token'] = $member->token;
         $return['headimg'] = $member->headimg;
         $return['grade_id'] = $member->grade_id;
+        $return['grade'] = Grade::getCacheGrade($member->grade_id);
         $return['mobile'] = $member->mobile;
         $return['created_at'] = date('Y-m-d H:i:s', $member->created_at);
         $return['realname'] = StringHelper::formatUserName($member->realname);

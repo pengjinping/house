@@ -19,15 +19,9 @@ use \common\models\Member\Member;
     ]); ?>
 
     <?= $form->field($model, 'id')->textInput(['placeholder'=>'用户ID'])?>
-
     <?= $form->field($model, 'username')->textInput(['placeholder'=>'用户名'])?>
-
     <?= $form->field($model, 'nick')->textInput(['placeholder'=>'昵称'])?>
-
-    <?= $form->field($model, 'idcard')->textInput(['placeholder'=>'身份证'])?>
-
     <?= $form->field($model, 'mobile')->textInput(['placeholder'=>'手机号'])?>
-
     <?= $form->field($model, 'status')->dropDownList(Member::$STATUS_MAP, ['prompt' => '状态'])?>
 
     <div class="form-group">

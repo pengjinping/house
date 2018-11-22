@@ -6,6 +6,14 @@ use Yii;
 
 class FinanceRecord extends \yii\db\ActiveRecord
 {
+    //状态
+    const STATUS_OFF = '0';
+    const STATUS_ON = '1';
+    public static $STATUS_MAP = [
+        self::STATUS_ON  => '已确认',
+        self::STATUS_OFF => '未确认',
+    ];
+
     public static function getDb()
     {
         return Yii::$app->get('db_finance');
@@ -22,9 +30,9 @@ class FinanceRecord extends \yii\db\ActiveRecord
     {
         return [
             [['user_id', 'price', 'level_id'], 'integer'],
-            [['channle', 'operate', 'user', 'parent', 'grandpa', 'team', 'league'], 'number'],
+            [['channle', 'operate', 'user', 'parent', 'grandpa', 'team', 'league', 'admin'], 'number'],
             [['date', 'created_at'], 'safe'],
-            [['title'], 'string', 'max' => 50],
+            [['title', 'status'], 'string', 'max' => 50],
         ];
     }
 
@@ -44,8 +52,10 @@ class FinanceRecord extends \yii\db\ActiveRecord
             'user'       => '开单者',
             'parent'     => '上级',
             'grandpa'    => '二级',
+            'admin'      => '后台管理',
             'team'       => '团队管理',
             'league'     => '团建',
+            'status'     => '状态',
             'date'       => '开单时间',
             'created_at' => '创建时间',
         ];

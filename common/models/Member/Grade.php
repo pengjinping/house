@@ -40,4 +40,18 @@ class Grade extends \yii\db\ActiveRecord
             'rate' => '购物折扣(%)',
         ];
     }
+
+    // 查询地域信息内容 array | 名称
+    public static function getCacheGrade($code = null){
+        $gradelist = static::find()->asArray()->indexBy('code')->cache(300)->all();
+        if($code !== null){
+            return isset($gradelist[$code]) ? $gradelist[$code]['name'] : '';
+        }
+        
+        $newlist = [];
+        foreach ($gradelist as $k => $v){
+            $newlist[$k] = $v['name'];
+        }
+        return $newlist;
+    }
 }
